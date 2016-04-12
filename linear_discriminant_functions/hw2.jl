@@ -8,6 +8,7 @@ w41 = [2.0, 8.9, 4.2, 8.5, 6.7, 0.5, 5.3, 8.7, 7.1, 8.0] * -1;
 w42 = [8.4, -0.2, 7.7, 3.2, 4.0, 9.2, 6.7, 6.4, 9.7, 6.3] * -1;
 const SAMPLE = [w11 w12 w21 w22 w31 w32 w41 w42];
 
+" normalization adds additional one column to data "
 normalize(data) = [data ones(size(data)[1])]
 
 function batch_perception(positive_data, negative_data)
