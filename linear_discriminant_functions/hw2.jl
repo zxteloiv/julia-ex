@@ -24,7 +24,32 @@ function normalize_data(positive, negative)
     data, weight
 end
 
-function relax_procedure(positive, negative; eta=0.5, margin=0)
+function single_sample_relax(positive, negative; eta=1, margin=1)
+    data, weight = normalize_data(positive, negative)
+    d, n = size(data)
+
+    function find_error(data, weight, eta, margin)
+        for i = 1:n
+            if dot(weight, data[:, i]) <= margin - 0.00001
+                return data[:, i]
+            end
+        end
+        nothing
+    end
+
+    step, y = 1, find_error(data, weight, eta, margin)
+    while y != nothing
+        gradient = (margin - dot(weight, y)) / dot(y, y) * y
+        weight += eta * gradient
+
+        step += 1
+        y = find_error(data, weight, eta, margin)
+    end
+
+    weight, step
+end
+
+function relax_procedure(positive, negative; eta=1, margin=1)
     data, weight = normalize_data(positive, negative)
     d, n = size(data)
 
@@ -32,19 +57,20 @@ function relax_procedure(positive, negative; eta=0.5, margin=0)
 
     function compute_error(data, weight, eta, margin)
         error_samples = [y for y in filter([data[:, i] for i = 1:n]) do y
-            dot(y, weight) <= margin
+            dot(y, weight) <= margin - 0.00001
         end]
     end
 
     step, error_samples = 1, compute_error(data, weight, eta, margin)
-    while length(error_samples) > 0 #&& step <= 5
-        println("===============================================")
+    while length(error_samples) > 0
+        println("== $(length(error_samples)) ==========================================")
         println("error_samples = $error_samples")
         println("weight = $weight")
 
         gradient = sum(error_samples) do y
-            println(y);
-            (margin - dot(weight, y) / dot(y, y)) * y
+            #println(y);
+            #println(margin - dot(weight, y) / dot(y, y))
+            (margin - dot(weight, y)) / dot(y, y) * y
         end
 
         weight += eta * gradient
@@ -72,7 +98,7 @@ function batch_perception(positive, negative)
     while length(error_samples) > 0
         gradient = sum(error_samples)
         weight += gradient
-        println("new weight $weight\t<= $gradient")
+        #println("new weight $weight\t<= $gradient")
 
         step += 1
         error_samples = compute_error(data, weight)
@@ -98,10 +124,13 @@ function hw2_1()
     println("batch perception w1 and w2: iteration steps: $step, final weights: $weight")
     weight, step = batch_perception(SAMPLE[:, 3:4], SAMPLE[:, 5:6])
     println("batch perception w2 and w3: iteration steps: $step, final weights: $weight")
+    weight, step = single_sample_relax(SAMPLE[:, 1:2], SAMPLE[:, 3:4])
+    println("single sample relax w1 and w2: iteration steps: $step, final weights: $weight")
+
 end
 
 if !isinteractive()
-    #hw2_1()
-    println(relax_procedure(SAMPLE[:, 1:2], SAMPLE[:, 3:4]))
+    hw2_1()
+    #println(single_sample_relax(SAMPLE[:, 1:2], SAMPLE[:, 3:4]))
 end
 
