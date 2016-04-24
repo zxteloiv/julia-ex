@@ -4,40 +4,44 @@ abstract Layer
 a perceptron layer with any number
 """
 type PerceptronLayer <: Layer
-    weights::Array{Number, 2}
-    outputs::Array{Number, 1}
-    inputs::Array{Number, 1}
-    bias::Array{Number, 1}
+    weights::Matrix{Number}
+    outputs::Vector{Number}
+    inputs::Vector{Number}
+    bias::Vector{Number}
     activation::Function
 
 end
+
 
 sigmoid(z::Number) = 1 / (1 + e^(-z))
 sigmoid{T<:Number}(arr::Array{T}) = map(sigmoid, arr)
 tanh = Base.tanh
 relu(x::Real) = max(0, x)
+relu{T<:Real}(arr::Array{T}) = map(relu, arr)
+
 
 function activate(layer::PerceptronLayer, f::Function)
     layer.outputs = f(layer.outputs)
 end
 
 function forward(layer::PerceptronLayer)
-    layer.outputs = activate(layer.weights * inputs + bias, layer.activation)
+    net = layer.weights * layer.inputs + layer.bias
+    layer.outputs = activate(net, layer.activation)
 end
 
-function backward{T}(layer::PerceptronLayer{T}, error)
+function backward(layer::PerceptronLayer, error::Vector{Number})
     error * partial * w
 end
 
 type StackNet
     layers::Array{Layer, 1}
-    loss_func::AbstractString
+    loss_func::Function
 end
 
-function train(X::Array{Array{Number, 1}, 1}, Y::Array{Array{Number, 1}, 1}, net::StackNet)
+function train(X::Vector{Vector{Number}}, Y::Vector{Vector{Number}}, net::StackNet)
 end
 
-function test(X::Array{Array{Number, 1}, 1}, Y::Array{Array{Number, 1}, 1}, net::StackNet)
+function test(X::Vector{Vector{Number}}, Y::Vector{Vector{Number}}, net::StackNet)
 end
 
 println(sigmoid(1))
