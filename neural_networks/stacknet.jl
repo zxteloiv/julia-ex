@@ -14,7 +14,7 @@ function partial_error(foo::Function, output, label)
     if foo == square_error
         return output - label
     else
-        return output - label
+        error("not implemented for this partial $foo")
     end
 end
 

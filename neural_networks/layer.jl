@@ -36,17 +36,25 @@ end
 Backward error update for PerceptronLayer
 """
 function backward(layer::PerceptronLayer, error; eta=0.03)
+    # partial error w.r.t. activation function 
     activation_derivatives = activation_partial(layer)
     output_num, input_num = size(layer.weights)
 
+    # partial error w.r.t. weighted net sum
+    net_error = error .* activation_derivatives
+
     # build new error to propagate backward
-    new_error = [ sum([error[j] * activation_derivatives[j] * layer.weights[j, i] for j = 1:output_num]) for i = 1:input_num ]
+    new_error = [sum([net_error[j] * layer.weights[j, i] for j = 1:output_num])
+    for i = 1:input_num ]
 
+    # update weights
     for i = 1:input_num, j = 1:output_num
-        gradient = error[j] * activation_derivatives[j] * layer.inputs[i]
-
+        gradient = net_error[j] * layer.inputs[i]
         layer.weights[j, i] -= eta * gradient
     end
+
+    # update bias
+    layer.bias -= eta * net_error
 
     new_error
 end

@@ -6,7 +6,7 @@ function train(X, Y, net::StackNet)
         for i = 1:size(X)[2]
             # every single sample
             outputs = forward(net, X[:, i])
-            loss += net.loss_func(outputs)
+            loss += net.loss_func(outputs, Y[i])
 
             error = backward(net, outputs, Y[i])
         end
@@ -44,10 +44,7 @@ function main()
     Y = [ 1 1 1 1 1 -1 -1 -1 -1 -1 ]
     Y = [ 1 1 1 1 1 0 0 0 0 0 ]
 
-
-    dbglog(X, Y)
-
-    net = StackNet(sigmoid)
+    net = StackNet(square_error)
     add_layer(net, PerceptronLayer(2, 3))
     add_layer(net, PerceptronLayer(3, 1))
 
