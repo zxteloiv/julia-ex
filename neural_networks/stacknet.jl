@@ -1,16 +1,22 @@
+import Lumberjack
+dbglog(x::Any) = Lumberjack.debug(string(x))
+dbglog(x::Any...) = Lumberjack.debug(string(x))
+infolog(x::Any) = Lumberjack.info(string(x))
+infolog(x::Any...) = Lumberjack.info(string(x))
+
 abstract Layer
 
 """
 a perceptron layer with any number
 """
 type PerceptronLayer <: Layer
-    weights::Matrix{Number}
-    outputs::Vector{Number}
-    inputs::Vector{Number}
-    bias::Vector{Number}
+    weights::Matrix{Float64}
+    outputs::Vector{Float64}
+    inputs::Vector{Float64}
+    bias::Vector{Float64}
     activation::Function
 
-    PerceptronLayer(input_num::Integer, output_num::Integer, activation::Function) = begin
+    PerceptronLayer(input_num::Integer, output_num::Integer, activation::Function=sigmoid) = begin
         # weights * input = output, therefore the row should be output nodes
         weights = rand(output_num, input_num)
         for i = 1:output_num
@@ -39,13 +45,6 @@ relu(x::Real) = max(0, x)
 relu{T<:Real}(arr::Array{T}) = map(relu, arr)
 
 """
-Activation in PerceptronLayer
-"""
-function activate(layer::PerceptronLayer, f::Function)
-    layer.outputs = f(layer.outputs)
-end
-
-"""
 Partial derivative value of activation functions w.r.t. layer_weight
 """
 function activation_partial(layer::PerceptronLayer)
@@ -64,24 +63,24 @@ end
 """
 Forward computing in PerceptronLayer
 """
-function forward(layer::PerceptronLayer, inputs::Vector{Number})
+function forward(layer::PerceptronLayer, inputs)
     layer.inputs = inputs
     net = layer.weights * layer.inputs + layer.bias
-    layer.outputs = activate(net, layer.activation)
+    layer.outputs = layer.activation(net)
 end
 
 """
 Backward error update for PerceptronLayer
 """
-function backward(layer::PerceptronLayer, error::Vector{Number}; eta=0.05)
+function backward(layer::PerceptronLayer, error; eta=0.05)
     activation_derivatives = activation_partial(layer)
+    output_num, input_num = size(layer.weights)
 
     # build new error to propagate backward
     new_error = [ sum([error[j] * activation_derivatives[j] * layer.weights[j, i] for j = 1:output_num]) for i = 1:input_num ]
 
-    (output_num, input_num) = size(layer)
     for i = 1:input_num, j = 1:output_num
-        gradient = error[j] * activation_derivatives[j] * layer.input[i]
+        gradient = error[j] * activation_derivatives[j] * layer.inputs[i]
 
         layer.weights[j, i] -= eta * gradient
     end
@@ -120,12 +119,12 @@ add_layer(net::StackNet, layer::Layer) = push!(net.layers, layer)
 """
 do the forward computation on the entire stack network
 """
-function forward(sample::Vector{Number}, net::StackNet)
+function forward(net::StackNet, sample)
     outputs = sample
     for i = 1:length(net.layers)
         outputs = forward(net.layers[i], outputs)
     end
-    outputs = net.loss_func(outputs)
+    outputs
 end
 
 """
@@ -138,13 +137,86 @@ function backward(net::StackNet, last_output, label)
     end
 end
 
-function train(X::Vector{Vector{Number}}, Y::Vector{Vector{Number}}, net::StackNet)
-    for i = 1:length(X)
-        output = forward(X[i], Y[i], net)
+"""
+show the net
+"""
+function shownet(net::StackNet)
+    head = """
+    net::StackNet
+    loss: $(net.loss_func)
+    Layers: $(length(net.layers))
+    """
+    layer = ["""
+    -----------------
+        $(net.layers[i].activation)
+        weights $(net.layers[i].weights)
+        bias $(net.layers[i].bias)
+        inputs $(net.layers[i].inputs)
+        outputs $(net.layers[i].outputs)
+    """ for i in 1:length(net.layers)]
+    head * join(layer, "\n")
+end
+
+function train(X, Y, net::StackNet)
+    for epoch = 1:500
+        for i = 1:size(X)[2]
+            # every single sample
+            outputs = forward(net, X[:, i])
+            loss = net.loss_func(outputs)
+            dbglog("loss $(loss[1])")
+
+            error = backward(net, outputs, Y[i])
+        end
     end
 end
 
-function test(X::Vector{Vector{Number}}, Y::Vector{Vector{Number}}, net::StackNet)
+function test(X, Y, net::StackNet)
+    for i = 1:size(X)[2]
+        # every single sample
+        outputs = forward(net, X[:, i])
+        #dbglog("loss $(loss[1])")
+
+        infolog(outputs[1], Y[i])
+    end
 end
 
-println(sigmoid([1,2,3]))
+# network testing
+
+function main()
+
+    X = [
+    1 2 0 0 1 0 0 -1 -2 -1;
+    0 0 -1 -2 -1 1 2 0 0 1
+    ]
+
+    testX = [
+    2 1 -1 -2;
+    -1 -2 2 1
+    ]
+
+    testY = [ 1 1 -1 -1 ]
+
+    Y = [ 1 1 1 1 1 -1 -1 -1 -1 -1 ]
+
+
+    dbglog(X, Y)
+
+    net = StackNet(sigmoid)
+    add_layer(net, PerceptronLayer(2, 3))
+    add_layer(net, PerceptronLayer(3, 1))
+
+    dbglog(shownet(net))
+    test(testX, testY, net)
+
+    train(X, Y, net)
+    dbglog(shownet(net))
+
+    test(testX, testY, net)
+
+end
+
+if !isinteractive()
+    main()
+end
+
+
