@@ -25,7 +25,9 @@ type StackNet
     layers::Array{Layer, 1}
     loss_func::Function
 
-    StackNet(loss_func::Function) = new(Array{Layer, 1}(), loss_func)
+    StackNet(loss_func::Function) = begin
+        new(Array{Layer, 1}(), loss_func)
+    end
 end
 
 add_layer(net::StackNet, layer::Layer) = push!(net.layers, layer)
@@ -48,6 +50,15 @@ function backward(net::StackNet, last_output, label)
     error = partial_error(net.loss_func, last_output, label)
     for i = length(net.layers):-1:1
         error = backward(net.layers[i], error)
+    end
+end
+
+"""
+mini-batch update each layer
+"""
+function batch_update(net::StackNet; eta=0.03)
+    for i = 1:length(net.layers)
+        batch_update(net.layers[i], eta=eta)
     end
 end
 

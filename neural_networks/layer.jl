@@ -12,15 +12,30 @@ type PerceptronLayer <: Layer
     bias::Vector{Float64}
     activation::Function
 
-    PerceptronLayer(input_num::Integer, output_num::Integer, activation::Function=sigmoid) = begin
+    weights_delta_acc::Matrix{Float64}
+    bias_delta_acc::Vector{Float64}
+
+    PerceptronLayer(input_num::Integer, output_num::Integer,
+    activation::Function=sigmoid) = begin
         # weights * input = output, therefore the row should be output nodes
         weights = rand(output_num, input_num)
         for i = 1:output_num
             weights[i, :] ./= sum(weights[i, :])
         end
 
-        new(weights, zeros(output_num), zeros(input_num), rand(output_num), activation)
+        new(weights, zeros(output_num), zeros(input_num), rand(output_num),
+        activation, zeros(output_num, input_num), zeros(output_num))
     end
+end
+
+"""
+update parameters of a layer using errors from mini-batch
+"""
+function batch_update(layer::PerceptronLayer; eta=0.03)
+    layer.weights -= eta * layer.weights_delta_acc
+    layer.bias -= eta * layer.bias_delta_acc
+    layer.weights_delta_acc = zeros(layer.weights_delta_acc)
+    layer.bias_delta_acc = zeros(layer.bias_delta_acc)
 end
 
 """
@@ -50,11 +65,11 @@ function backward(layer::PerceptronLayer, error; eta=0.03)
     # update weights
     for i = 1:input_num, j = 1:output_num
         gradient = net_error[j] * layer.inputs[i]
-        layer.weights[j, i] -= eta * gradient
+        layer.weights_delta_acc[j, i] += gradient
     end
 
     # update bias
-    layer.bias -= eta * net_error
+    layer.bias_delta_acc += net_error
 
     new_error
 end

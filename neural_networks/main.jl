@@ -1,15 +1,23 @@
 include("stacknet.jl")
 
 function train(X, Y, net::StackNet)
-    for epoch = 1:20000
+    const MAXITER = 20000
+    const BATCHSIZE = 5
+
+    for epoch = 1:MAXITER
         loss = 0
         for i = 1:size(X)[2]
             # every single sample
             outputs = forward(net, X[:, i])
             loss += net.loss_func(outputs, Y[i])
+            backward(net, outputs, Y[i])
 
-            error = backward(net, outputs, Y[i])
+            if i % BATCHSIZE == 0
+                batch_update(net, eta=0.03)
+                #dbglog(shownet(net))
+            end
         end
+        batch_update(net, eta=0.03)
         #dbglog("loss $(loss[1])")
     end
 end
