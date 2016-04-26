@@ -18,13 +18,11 @@ function test(X, Y, net::StackNet)
     for i = 1:size(X)[2]
         # every single sample
         outputs = forward(net, X[:, i])
-        #dbglog("loss $(loss[1])")
+        dbglog("loss $(net.loss_func(outputs, Y[i]))")
 
         infolog(outputs[1], Y[i])
     end
 end
-
-# network testing
 
 function main()
 
