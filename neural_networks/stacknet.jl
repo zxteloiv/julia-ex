@@ -1,5 +1,3 @@
-include("logger.jl")
-
 include("layer.jl")
 
 """
@@ -24,9 +22,10 @@ StackNet is network with layers structure like a stack
 type StackNet
     layers::Array{Layer, 1}
     loss_func::Function
+    batch_size::Integer
 
-    StackNet(loss_func::Function) = begin
-        new(Array{Layer, 1}(), loss_func)
+    StackNet(loss_func::Function; batch_size=5) = begin
+        new(Array{Layer, 1}(), loss_func, batch_size)
     end
 end
 
@@ -58,7 +57,7 @@ mini-batch update each layer
 """
 function batch_update(net::StackNet; eta=0.03)
     for i = 1:length(net.layers)
-        batch_update(net.layers[i], eta=eta)
+        batch_update(net.layers[i], eta=(eta / net.batch_size))
     end
 end
 

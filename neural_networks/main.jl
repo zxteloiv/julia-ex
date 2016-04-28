@@ -113,7 +113,7 @@ function main()
     const ETA = 0.1
     const HIDDEN = 7
 
-    net = StackNet(square_error)
+    net = StackNet(square_error, batch_size=BATCHSIZE)
     add_layer(net, PerceptronLayer(3, HIDDEN, tanh))
     add_layer(net, PerceptronLayer(HIDDEN, 3, sigmoid))
 
