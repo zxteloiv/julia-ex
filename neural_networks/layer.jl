@@ -19,6 +19,8 @@ type PerceptronLayer <: Layer
     activation::Function=sigmoid) = begin
         # weights * input = output, therefore the row should be output nodes
         weights = rand(output_num, input_num)
+
+        # normalize for the weights
         for i = 1:output_num
             weights[i, :] ./= sum(weights[i, :])
         end
