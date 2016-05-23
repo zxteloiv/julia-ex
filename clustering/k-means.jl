@@ -1,3 +1,7 @@
+#!/usr/bin/env julia
+
+include("logger.jl")
+
 """
 Do k-means clustering for inputs, each of which is a single data sample.
     @k the number of clusters
@@ -6,19 +10,24 @@ Do k-means clustering for inputs, each of which is a single data sample.
     return the cluster indicator array, each element is the cluster id which
     contains the data example indicated by the array index.
 """
-function kmeans{T <: Number}(k::UInt, inputs::Vector{Vector{T}})
+function kmeans{T <: Number}(k::UInt, inputs::Vector{Vector{T}}; lowerbound=0.00001, maxiter=1000)
     assert(k > 1)
 
     # initialize k centroids from inputs
     centroids = init_centroids(k, inputs)
+    dbglog("init: centroids=$centroids")
 
-    iter, sumdiff = 1, 1
-    while sumdiff > 0.0001 && iter < 1000
+    iter, sumdiff = 0, 1
+    while sumdiff > lowerbound && iter < maxiter
         nearest_centroids = find_nearest_centroids(inputs, centroids)
         new_centroids = find_new_centroids(k, inputs, nearest_centroids)
+
         sumdiff = sum([dot(v, v) for v in new_centroids - centroids]) 
         iter += 1
+
         centroids = new_centroids
+
+        dbglog("======\n$iter: diff=$sumdiff centroids=$centroids")
     end
 
     return centroids
