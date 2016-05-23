@@ -15,7 +15,7 @@ function kmeans{T <: Number}(k::UInt, inputs::Vector{Vector{T}}; lowerbound=0.00
 
     # initialize k centroids from inputs
     centroids = init_centroids(k, inputs)
-    dbglog("init: centroids=$centroids")
+    dbglog("init: centroids=$(formatnum(centroids))")
 
     iter, sumdiff = 0, 1
     while sumdiff > lowerbound && iter < maxiter
@@ -27,7 +27,7 @@ function kmeans{T <: Number}(k::UInt, inputs::Vector{Vector{T}}; lowerbound=0.00
 
         centroids = new_centroids
 
-        dbglog("======\n$iter: diff=$sumdiff centroids=$centroids")
+        dbglog("======\n$iter: diff=$sumdiff centroids=$(formatnum(centroids))")
     end
 
     return centroids
