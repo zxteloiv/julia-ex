@@ -19,4 +19,4 @@ x5 = rand(MvNormal(mu5, Sigma), 200);
 
 x = [x1 x2 x3 x4 x5]
 
-println("x = $(repr(x))")
+println(repr(x))

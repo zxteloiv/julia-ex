@@ -1,4 +1,3 @@
-
 """
 Do k-means clustering for inputs, each of which is a single data sample.
     @k the number of clusters
@@ -15,7 +14,7 @@ function kmeans{T <: Number}(k::UInt, inputs::Vector{Vector{T}})
 
     iter, sumdiff = 1, 1
     while sumdiff > 0.0001 && iter < 1000
-        nearest_centroids = find_nearest_centroids(k, inputs, centroids)
+        nearest_centroids = find_nearest_centroids(inputs, centroids)
         new_centroids = find_new_centroids(k, inputs, nearest_centroids)
         sumdiff = sum([dot(v, v) for v in new_centroids - centroids]) 
         iter += 1
@@ -29,16 +28,16 @@ end
 Find the new centroids
 """
 function find_new_centroids{T <: Number}(k::UInt, inputs::Vector{Vector{T}}, nearest_centroids)
-    new_centroids = zeros(k)
-    for c = 1:k
+    new_centroids = Vector[ begin
         vsum, count = 0, 0
         for (i, min_c) in filter(x -> x[2] == c, nearest_centroids)
             vsum += inputs[i]
             count += 1
         end
-        new_centroids[c] = vsum * 1.0 / count 
-    end
-    return new_centroids
+        float(vsum) / count 
+    end for c = 1:k ]
+
+    return convert(Vector{Vector{Float64}}, new_centroids)
 end
 
 """
@@ -50,7 +49,7 @@ Find the nearest centroids for all the data samples.
     return an array, each element of which is a pair of array index and id of the
     nearest cluster.
 """
-function find_nearest_centroids{T <: Number}(inputs::Vector{Vector{T}}, centroids::Vector{T})
+function find_nearest_centroids{T <: Number}(inputs::Vector{Vector{T}}, centroids::Vector{Vector{T}})
     # find the nearest centroid for each input
     k = length(centroids)
     belonging = map(enumerate(inputs)) do x
@@ -68,7 +67,7 @@ Initialize the centroids.
 return an array of centroids, each is a vector in feature space.
 """
 function init_centroids{T <: Number}(k::UInt, inputs::Vector{Vector{T}})
-    assert(len(inputs) > k)
+    assert(length(inputs) > k)
     
     centroids = Vector{Vector{T}}()
 
