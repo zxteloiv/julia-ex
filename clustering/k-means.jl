@@ -16,7 +16,7 @@ function kmeans{T <: Number}(k::Int, inputs::Vector{Vector{T}}; lowerbound=0.000
 
     # initialize k centroids from inputs
     centroids = init_centroids(k, inputs)
-    dbglog("init: centroids=$(formatnum(centroids))")
+    #dbglog("init: centroids=$(formatnum(centroids))")
 
     iter, sumdiff = 0, 1
     while sumdiff > lowerbound && iter < maxiter
@@ -28,7 +28,7 @@ function kmeans{T <: Number}(k::Int, inputs::Vector{Vector{T}}; lowerbound=0.000
 
         centroids = new_centroids
 
-        dbglog("======\n$iter: diff=$sumdiff centroids=$(formatnum(centroids))")
+        #dbglog("======\n$iter: diff=$sumdiff centroids=$(formatnum(centroids))")
     end
 
     # the final cluster assignment
