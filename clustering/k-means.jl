@@ -55,7 +55,7 @@ end
 Find the new centroids
 """
 function find_new_centroids{T <: Number}(k::Int, inputs::Vector{Vector{T}}, nearest_centroids)
-    new_centroids = Vector[ begin
+    new_centroids = Vector{Float64}[ begin
         vsum, count = 0, 0
         for (i, min_c) in filter(x -> x[2] == c, nearest_centroids)
             vsum += inputs[i]
@@ -63,8 +63,6 @@ function find_new_centroids{T <: Number}(k::Int, inputs::Vector{Vector{T}}, near
         end
         float(vsum) / count 
     end for c = 1:k ]
-
-    return convert(Vector{Vector{Float64}}, new_centroids)
 end
 
 """
