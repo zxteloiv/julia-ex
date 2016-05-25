@@ -10,7 +10,7 @@ Do k-means clustering for inputs, each of which is a single data sample.
     return the cluster indicator array, each element is the cluster id which
     contains the data example indicated by the array index.
 """
-function kmeans{T <: Number}(k::UInt, inputs::Vector{Vector{T}}; lowerbound=0.00001, maxiter=1000)
+function kmeans{T <: Number}(k::Int, inputs::Vector{Vector{T}}; lowerbound=0.00001, maxiter=1000)
     assert(k > 1)
 
     # initialize k centroids from inputs
@@ -30,13 +30,29 @@ function kmeans{T <: Number}(k::UInt, inputs::Vector{Vector{T}}; lowerbound=0.00
         dbglog("======\n$iter: diff=$sumdiff centroids=$(formatnum(centroids))")
     end
 
-    return centroids
+    # the final cluster assignment
+    nearest_centroids = find_nearest_centroids(inputs, centroids)
+
+    return centroids, nearest_centroids
+end
+
+"""
+Do k-means clustering for inputs
+    @k the number of clusters
+    @inputs the input data matrix, each column is a vector in feature space.
+
+    return the cluster indicator array, each element is the cluster id which
+    contains the data example indicated by the array index.
+"""
+function kmeans{T <: Number}(k::Int, inputs::Matrix{T}; lowerbound=0.00001, maxiter=1000)
+    inputs = Vector{T}[inputs[:, j] for j = 1:(size(inputs)[2])]
+    kmeans(k, inputs, lowerbound=lowerbound, maxiter=maxiter)
 end
 
 """
 Find the new centroids
 """
-function find_new_centroids{T <: Number}(k::UInt, inputs::Vector{Vector{T}}, nearest_centroids)
+function find_new_centroids{T <: Number}(k::Int, inputs::Vector{Vector{T}}, nearest_centroids)
     new_centroids = Vector[ begin
         vsum, count = 0, 0
         for (i, min_c) in filter(x -> x[2] == c, nearest_centroids)
@@ -75,7 +91,7 @@ Initialize the centroids.
 
 return an array of centroids, each is a vector in feature space.
 """
-function init_centroids{T <: Number}(k::UInt, inputs::Vector{Vector{T}})
+function init_centroids{T <: Number}(k::Int, inputs::Vector{Vector{T}})
     assert(length(inputs) > k)
     
     centroids = Vector{Vector{T}}()

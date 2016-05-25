@@ -42,10 +42,9 @@ end
 function main()
     inputs = Vector{Float64}[x[:, i] for i = 1:size(x)[2]]
 
-    centroids = kmeans(convert(UInt, 5), inputs, lowerbound=0.000001)
-    println("=====\nfinal=$(formatnum(centroids))")
+    centroids, nearest_centroids = kmeans(5, inputs, lowerbound=0.000001)
 
-    nearest_centroids = find_nearest_centroids(inputs, centroids)
+    println("=====\nfinal=$(formatnum(centroids))")
     error = compute_final_error(centroids, nearest_centroids)
     dbglog("error=$(formatnum(error))")
     stat = cluster_stat(5, nearest_centroids)
