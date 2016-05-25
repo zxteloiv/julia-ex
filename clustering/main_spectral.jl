@@ -1,25 +1,21 @@
 include("spectral.jl")
 
-function compute_accuracy(nearest)
-    count = zeros(2, 2)
+function compute_accuracy(nearest, k)
+    count = zeros(k, k)
     for (i, c_algo) in nearest
         c_truth = i <= 100 ? 1 : 2
         count[c_truth, c_algo] += 1
     end
-    accA = (count[1,1] + count[2,2]) / 200.0
-    accB = (count[2,1] + count[1,2]) / 200.0
     println(count)
-    println("$accA $accB")
-    accA, accB
 end
 
 function main()
     x = include("spiral_data.jl");
-    nearest = spectral_clustering(x, 2)
+    nearest = spectral_clustering(x, 2; neighbor_num=6, sigma=1)
 
     println(nearest)
 
-    compute_accuracy(nearest)
+    compute_accuracy(nearest, 2)
 end
 
 main()
