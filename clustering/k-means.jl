@@ -7,8 +7,9 @@ Do k-means clustering for inputs, each of which is a single data sample.
     @k the number of clusters
     @inputs the input data vector, each element is a vector in feature space.
 
-    return the cluster indicator array, each element is the cluster id which
-    contains the data example indicated by the array index.
+    return the centroids, each of which is a cluster center vector in feature space.
+        the cluster indicator array, each element is the cluster id which
+        contains the data example indicated by the array index.
 """
 function kmeans{T <: Number}(k::Int, inputs::Vector{Vector{T}}; lowerbound=0.00001, maxiter=1000)
     assert(k > 1)
@@ -41,8 +42,9 @@ Do k-means clustering for inputs
     @k the number of clusters
     @inputs the input data matrix, each column is a vector in feature space.
 
-    return the cluster indicator array, each element is the cluster id which
-    contains the data example indicated by the array index.
+    return the centroids, each of which is a cluster center vector in feature space.
+        the cluster indicator array, each element is the cluster id which
+        contains the data example indicated by the array index.
 """
 function kmeans{T <: Number}(k::Int, inputs::Matrix{T}; lowerbound=0.00001, maxiter=1000)
     inputs = Vector{T}[inputs[:, j] for j = 1:(size(inputs)[2])]
